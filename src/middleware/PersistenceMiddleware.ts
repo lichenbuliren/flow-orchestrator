@@ -13,7 +13,7 @@ import type {
  * Usage:
  * ```ts
  * const persistence = new PersistenceMiddleware(myStorage, 30 * 60 * 1000);
- * const flow = new StateFlowV3({ ..., middleware: [persistence] });
+ * const flow = new FlowOrchestrator({ ..., middleware: [persistence] });
  *
  * // Before starting a new flow, check for existing snapshot:
  * const snapshot = await persistence.restoreIfExists('my-flow-id');

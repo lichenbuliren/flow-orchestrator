@@ -1,4 +1,4 @@
-import { StateFlowV3 } from '../core/StateFlowV3';
+import { FlowOrchestrator } from '../core/FlowOrchestrator';
 import { MockNavigationAdapter } from '../navigation/MockNavigationAdapter';
 import {
   ActionResultType,
@@ -15,17 +15,16 @@ function page(id: number, name: string, overrides?: Partial<FlowNode>): FlowNode
 
 function createFlow(nodes: FlowNode[], meta: Record<string, unknown> = {}) {
   const adapter = new MockNavigationAdapter();
-  const flow = new StateFlowV3({
+  const flow = new FlowOrchestrator({
     flowId: 'test',
     nodes,
     meta,
     adapter,
-    rootTag: 1,
   });
   return { flow, adapter };
 }
 
-describe('StateFlowV3', () => {
+describe('FlowOrchestrator', () => {
   describe('basic flow lifecycle', () => {
     it('should start and navigate to the first node', async () => {
       const { flow, adapter } = createFlow([page(1, 'PageA'), page(2, 'PageB')]);

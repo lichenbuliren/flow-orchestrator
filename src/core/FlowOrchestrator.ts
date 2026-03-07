@@ -9,7 +9,7 @@ import {
   type FlowNode,
   type MiddlewareContext,
   type ObjectType,
-  type StateFlowV3Options,
+  type FlowOrchestratorOptions,
   type TransitionResult,
 } from '../interfaces';
 import { SimpleEventEmitter } from './SimpleEventEmitter';
@@ -24,12 +24,11 @@ import { SimpleEventEmitter } from './SimpleEventEmitter';
  *
  * @example
  * ```ts
- * const flow = new StateFlowV3({
+ * const flow = new FlowOrchestrator({
  *   flowId: 'onboarding',
  *   nodes: [...],
  *   meta: { source: 'home' },
  *   adapter: myNavigationAdapter,
- *   rootTag: 1,
  *   middleware: [new LoggingMiddleware(logger)],
  * });
  *
@@ -37,7 +36,7 @@ import { SimpleEventEmitter } from './SimpleEventEmitter';
  * await flow.start();
  * ```
  */
-export class StateFlowV3<M extends ObjectType = ObjectType> {
+export class FlowOrchestrator<M extends ObjectType = ObjectType> {
   readonly flowId: string;
   readonly events: SimpleEventEmitter<FlowEventMap>;
 
@@ -46,7 +45,7 @@ export class StateFlowV3<M extends ObjectType = ObjectType> {
   private pipeline: MiddlewarePipeline;
   private _disposed = false;
 
-  constructor(options: StateFlowV3Options<M>) {
+  constructor(options: FlowOrchestratorOptions<M>) {
     this.flowId = options.flowId;
     this.events = new SimpleEventEmitter<FlowEventMap>();
 
@@ -64,7 +63,6 @@ export class StateFlowV3<M extends ObjectType = ObjectType> {
 
     this.navigation = new NavigationController({
       adapter: options.adapter,
-      rootTag: options.rootTag,
       getPropsData,
     });
 
@@ -176,14 +174,6 @@ export class StateFlowV3<M extends ObjectType = ObjectType> {
 
   // ---- Misc ----
 
-  updateRootTag(rootTag: number): void {
-    this.navigation.updateRootTag(rootTag);
-  }
-
-  getRootTag(): number {
-    return this.navigation.getRootTag();
-  }
-
   dispose(): void {
     this.events.removeAllListeners();
     this._disposed = true;
@@ -269,7 +259,7 @@ export class StateFlowV3<M extends ObjectType = ObjectType> {
 
   private assertNotDisposed(): void {
     if (this._disposed) {
-      throw new Error(`StateFlowV3 "${this.flowId}" has been disposed.`);
+      throw new Error(`FlowOrchestrator "${this.flowId}" has been disposed.`);
     }
   }
 }

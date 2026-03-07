@@ -1,5 +1,5 @@
 {
-  "name": "state-flow",
+  "name": "@lichenbuliren/flow-orchestrator",
   "version": "0.1.0",
   "description": "A high-cohesion, low-coupling flow orchestration engine for multi-step workflows",
   "main": "src/index.ts",
@@ -27,7 +27,13 @@
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit -p ./tsconfig.json --pretty true",
     "test": "jest",
-    "prepack": "pnpm build"
+    "prepack": "pnpm build",
+    "changeset": "changeset",
+    "version:pre": "changeset version",
+    "version": "changeset version",
+    "release": "pnpm build && changeset publish",
+    "docs:dev": "rm -rf .dumi/tmp && dumi dev",
+    "docs:build": "rm -rf .dumi/tmp && dumi build"
   },
   "peerDependencies": {
     "react": ">=16.8.0"
@@ -38,16 +44,20 @@
     }
   },
   "devDependencies": {
-    "tsup": "^8.0.0",
-    "typescript": "^5.0.0",
-    "react": "^18.0.0",
-    "@types/react": "^18.0.0",
-    "jest": "^29.0.0",
+    "@changesets/cli": "^2.30.0",
     "@types/jest": "^29.0.0",
-    "ts-jest": "^29.0.0"
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.3.7",
+    "dumi": "^2.4.23",
+    "jest": "^29.0.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.3.1",
+    "ts-jest": "^29.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0"
   },
   "keywords": [
-    "state-flow",
+    "flow-orchestrator",
     "flow-engine",
     "workflow",
     "state-machine",

@@ -1,0 +1,13 @@
+{
+  "extends": "../tsconfig.json",
+  "include": ["./**/*.ts", "./**/*.tsx", "../src/**/*"],
+  "compilerOptions": {
+    "lib": ["ESNext", "DOM"],
+    "declaration": false,
+    "declarationDir": null,
+    "baseUrl": "..",
+    "paths": {
+      "@lichenbuliren/flow-orchestrator": ["./src/index.ts"]
+    }
+  }
+}

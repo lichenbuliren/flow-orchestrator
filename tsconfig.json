@@ -15,7 +15,7 @@
     "strict": true,
     "module": "ESNext",
     "target": "ES2015",
-    "importHelpers": true,
+    "importHelpers": false,
     "moduleResolution": "node",
     "esModuleInterop": true,
     "skipLibCheck": true,

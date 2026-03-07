@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import type { ObjectType } from '../interfaces';
 
 /**
- * Shape of the propsData that StateFlowV3 passes to each page node.
+ * Shape of the propsData that FlowOrchestrator passes to each page node.
  */
 interface FlowPropsData<TData = unknown, TMeta = ObjectType> {
   flowMeta?: TMeta;
@@ -17,7 +17,7 @@ interface FlowPropsData<TData = unknown, TMeta = ObjectType> {
 
 /**
  * Generic page props interface.
- * If your framework provides its own (e.g., FunctionalPageProps), use that instead
+ * If your framework provides its own page props type, use that instead
  * and just pass `props.propsData` or the full props to this hook.
  */
 interface PageProps {
@@ -41,7 +41,7 @@ export interface UseFlowNodeReturn<TData = unknown, TMeta = ObjectType> {
  *
  * @example
  * ```tsx
- * const MyPage: React.FC<FunctionalPageProps> = (props) => {
+ * const MyPage: React.FC<PageProps> = (props) => {
  *   const { data, meta, isGoBack } = useFlowNode<MyNodeData, MyMeta>(props);
  *
  *   useEffect(() => {

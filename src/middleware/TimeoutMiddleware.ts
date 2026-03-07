@@ -16,14 +16,14 @@ export type TimeoutCallback = (context: MiddlewareContext) => void;
  * const timeout = new TimeoutMiddleware(5 * 60 * 1000, (ctx) => {
  *   console.warn('Flow node timed out', ctx.currentNode);
  * });
- * const flow = new StateFlowV3({ ..., middleware: [timeout] });
+ * const flow = new FlowOrchestrator({ ..., middleware: [timeout] });
  * ```
  */
 export class TimeoutMiddleware implements Middleware {
   readonly name = 'timeout';
 
   private timeoutMs: number;
-  private timer: ReturnType<typeof setTimeout> | null = null;
+  private timer: number | null = null;
   private onTimeout?: TimeoutCallback;
 
   constructor(timeoutMs = 5 * 60 * 1000, onTimeout?: TimeoutCallback) {

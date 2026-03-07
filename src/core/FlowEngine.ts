@@ -99,7 +99,7 @@ export class FlowEngine<M extends ObjectType = ObjectType> {
     if (nextNode.type === 'action') {
       if (!nextNode.execute) {
         throw new Error(
-          `[StateFlowV3] Action node "${nextNode.name}" (id=${nextNode.id}) must provide an execute() function.`
+          `[FlowOrchestrator] Action node "${nextNode.name}" (id=${nextNode.id}) must provide an execute() function.`
         );
       }
 

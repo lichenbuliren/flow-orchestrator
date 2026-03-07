@@ -1,5 +1,5 @@
 // ============================================================
-// Core Types for StateFlowV3 Flow Orchestration Engine
+// Core Types for FlowOrchestrator Flow Orchestration Engine
 // ============================================================
 
 export type ObjectType = Record<string, unknown>;
@@ -119,14 +119,12 @@ export interface NavigationPopOptions {
  */
 export interface INavigationAdapter {
   push(
-    rootTag: number,
     pageName: string,
     propsData?: Record<string, unknown>,
     options?: NavigationPushOptions
   ): void;
 
   pop(
-    rootTag: number,
     options?: NavigationPopOptions
   ): void;
 }
@@ -238,12 +236,11 @@ export interface ILogger {
 
 // ---- Constructor Options ----
 
-export interface StateFlowV3Options<M extends ObjectType = ObjectType> {
+export interface FlowOrchestratorOptions<M extends ObjectType = ObjectType> {
   flowId: string;
   nodes: FlowNode[];
   meta: M;
   adapter: INavigationAdapter;
-  rootTag: number;
   middleware?: Middleware[];
   /**
    * Custom function to build propsData for each page node.

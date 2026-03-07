@@ -14,7 +14,7 @@ import type {
  * Usage:
  * ```ts
  * const logging = new LoggingMiddleware(myLogger);
- * const flow = new StateFlowV3({ ..., middleware: [logging] });
+ * const flow = new FlowOrchestrator({ ..., middleware: [logging] });
  *
  * // After flow completes:
  * const timeline = logging.getTimeline();
@@ -61,7 +61,7 @@ export class LoggingMiddleware implements Middleware {
     this.timeline.push(entry);
     this.lastTimestamp = now;
 
-    this.logger.log(`[StateFlowV3] ${action}`, entry as unknown as Record<string, unknown>);
+    this.logger.log(`[FlowOrchestrator] ${action}`, entry as unknown as Record<string, unknown>);
   }
 
   onError(error: Error, context: MiddlewareContext): void {
@@ -77,7 +77,7 @@ export class LoggingMiddleware implements Middleware {
     this.timeline.push(entry);
     this.lastTimestamp = now;
 
-    this.logger.error(`[StateFlowV3] error`, {
+    this.logger.error(`[FlowOrchestrator] error`, {
       flowId: context.flowId,
       message: error.message,
     });

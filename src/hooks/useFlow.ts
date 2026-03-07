@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { flowInstanceManager, FlowInstanceManager } from '../FlowInstanceManager';
 import type { ObjectType } from '../interfaces';
-import type { StateFlowV3 } from '../core/StateFlowV3';
+import type { FlowOrchestrator } from '../core/FlowOrchestrator';
 
 export interface UseFlowOptions {
   flowId?: string;
@@ -12,7 +12,7 @@ export interface UseFlowOptions {
 export interface UseFlowReturn<M extends ObjectType = ObjectType> {
   /**
    * Advance to the next node.
-   * No rootTag or popCount needed — handled internally.
+   * No popCount needed — handled internally by NavigationController.
    */
   next: (data?: Record<string, unknown>) => void;
   /**
@@ -25,17 +25,16 @@ export interface UseFlowReturn<M extends ObjectType = ObjectType> {
    */
   abort: (data?: Record<string, unknown>) => void;
   /**
-   * The underlying StateFlowV3 instance (or null if not found).
+   * The underlying FlowOrchestrator instance (or null if not found).
    */
-  flow: StateFlowV3<M> | null;
+  flow: FlowOrchestrator<M> | null;
 }
 
 /**
- * React hook for interacting with a StateFlowV3 instance.
+ * React hook for interacting with a FlowOrchestrator instance.
  *
- * Replaces V2's `useStateFlowV2()`. Key improvements:
- * - No rootTag parameter needed
- * - No popCount / extraPopCount parameters
+ * Key design points:
+ * - No popCount — NavigationController handles it automatically
  * - goBack() is a first-class operation
  * - Explicit abort() vs goBack() semantics
  *

@@ -16,7 +16,7 @@
  * emitter.emit('data', { value: 42 });
  * ```
  */
-export class SimpleEventEmitter<EventMap extends Record<string, (...args: any[]) => void>> {
+export class SimpleEventEmitter<EventMap extends { [K in keyof EventMap]: (...args: any[]) => void }> {
   private listeners = new Map<keyof EventMap, Set<Function>>();
 
   on<K extends keyof EventMap>(event: K, listener: EventMap[K]): this {

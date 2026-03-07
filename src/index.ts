@@ -1,10 +1,10 @@
 // ============================================================
-// state-flow
+// flow-orchestrator
 // A high-cohesion, low-coupling flow orchestration engine
 // ============================================================
 
 // ---- Core ----
-export { StateFlowV3 } from './core/StateFlowV3';
+export { FlowOrchestrator } from './core/FlowOrchestrator';
 export { FlowEngine } from './core/FlowEngine';
 export { FlowContext } from './core/FlowContext';
 export { SimpleEventEmitter } from './core/SimpleEventEmitter';
@@ -60,7 +60,7 @@ export {
   type IFlowStorage,
   type FlowLogEntry,
   type ILogger,
-  type StateFlowV3Options,
+  type FlowOrchestratorOptions,
 } from './interfaces';
 
 // Re-export sub-types for convenience

@@ -13,7 +13,6 @@ export type PropsDataBuilder = (
 
 export interface NavigationControllerConfig {
   adapter: INavigationAdapter;
-  rootTag: number;
   getPropsData: PropsDataBuilder;
 }
 
@@ -22,7 +21,6 @@ export interface NavigationControllerConfig {
  * - Page stack tracking (via PageStack)
  * - popCount calculation
  * - Forward / backward / exit navigation
- * - rootTag management
  *
  * Business code never touches popCount — this controller computes it
  * automatically from the node's presentation config and stack state.
@@ -30,12 +28,10 @@ export interface NavigationControllerConfig {
 export class NavigationController {
   private adapter: INavigationAdapter;
   private pageStack: PageStack;
-  private rootTag: number;
   private getPropsData: PropsDataBuilder;
 
   constructor(config: NavigationControllerConfig) {
     this.adapter = config.adapter;
-    this.rootTag = config.rootTag;
     this.pageStack = new PageStack();
     this.getPropsData = config.getPropsData;
   }
@@ -48,7 +44,7 @@ export class NavigationController {
     const { popCount } = this.pageStack.pushPage(node);
     const propsData = this.getPropsData(node, data);
 
-    this.adapter.push(this.rootTag, node.name, propsData, {
+    this.adapter.push(node.name, propsData, {
       popCount,
       enterType: mapPresentationType(node.presentation?.type),
       secure: node.presentation?.secure,
@@ -70,7 +66,7 @@ export class NavigationController {
     const { popCount, isInStack } = this.pageStack.popToNode(node.id);
 
     if (isInStack) {
-      this.adapter.pop(this.rootTag, {
+      this.adapter.pop({
         count: popCount,
         data: JSON.stringify(data ?? {}),
       });
@@ -82,7 +78,7 @@ export class NavigationController {
       __isGoBack: true,
     });
 
-    this.adapter.push(this.rootTag, node.name, propsData, {
+    this.adapter.push(node.name, propsData, {
       popCount,
       enterType: mapPresentationType(node.presentation?.type),
       secure: node.presentation?.secure,
@@ -97,20 +93,12 @@ export class NavigationController {
   navigateExit(data?: Record<string, unknown>): void {
     const popCount = this.pageStack.getTotalPopCount();
     if (popCount > 0) {
-      this.adapter.pop(this.rootTag, {
+      this.adapter.pop({
         count: popCount,
         data: JSON.stringify({ ...data, isFlowEnd: true }),
       });
     }
     this.pageStack.clear();
-  }
-
-  updateRootTag(rootTag: number): void {
-    this.rootTag = rootTag;
-  }
-
-  getRootTag(): number {
-    return this.rootTag;
   }
 
   getPageStack(): PageStack {

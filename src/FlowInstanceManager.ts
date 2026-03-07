@@ -1,8 +1,8 @@
-import { StateFlowV3 } from './core/StateFlowV3';
+import { FlowOrchestrator } from './core/FlowOrchestrator';
 import { FlowEventName, type ObjectType } from './interfaces';
 
 /**
- * Registry for managing multiple concurrent StateFlowV3 instances.
+ * Registry for managing multiple concurrent FlowOrchestrator instances.
  *
  * Features:
  * - Auto-cleanup when a flow ends or is aborted
@@ -22,22 +22,22 @@ import { FlowEventName, type ObjectType } from './interfaces';
  * ```
  */
 export class FlowInstanceManager {
-  private instances = new Map<string, StateFlowV3>();
+  private instances = new Map<string, FlowOrchestrator>();
 
   /**
    * Register a flow instance. If one with the same flowId already exists,
    * the old instance is disposed first.
    */
-  register<M extends ObjectType>(flow: StateFlowV3<M>): void {
+  register<M extends ObjectType>(flow: FlowOrchestrator<M>): void {
     const existing = this.instances.get(flow.flowId);
     if (existing) {
       existing.dispose();
     }
 
-    this.instances.set(flow.flowId, flow as StateFlowV3);
+    this.instances.set(flow.flowId, flow as FlowOrchestrator);
 
     const cleanup = () => {
-      if (this.instances.get(flow.flowId) === (flow as StateFlowV3)) {
+      if (this.instances.get(flow.flowId) === (flow as FlowOrchestrator)) {
         this.instances.delete(flow.flowId);
       }
     };
@@ -52,27 +52,27 @@ export class FlowInstanceManager {
    *
    * @throws If no instance is found
    */
-  get<M extends ObjectType = ObjectType>(flowId?: string): StateFlowV3<M> {
+  get<M extends ObjectType = ObjectType>(flowId?: string): FlowOrchestrator<M> {
     if (flowId) {
       const instance = this.instances.get(flowId);
       if (!instance) {
-        throw new Error(`[StateFlowV3] Flow instance not found: "${flowId}"`);
+        throw new Error(`[FlowOrchestrator] Flow instance not found: "${flowId}"`);
       }
-      return instance as StateFlowV3<M>;
+      return instance as FlowOrchestrator<M>;
     }
 
     const entries = Array.from(this.instances.values());
     if (entries.length === 0) {
-      throw new Error('[StateFlowV3] No flow instance registered.');
+      throw new Error('[FlowOrchestrator] No flow instance registered.');
     }
 
-    return entries[entries.length - 1] as StateFlowV3<M>;
+    return entries[entries.length - 1] as FlowOrchestrator<M>;
   }
 
   /**
    * Safely try to get an instance. Returns undefined instead of throwing.
    */
-  tryGet<M extends ObjectType = ObjectType>(flowId?: string): StateFlowV3<M> | undefined {
+  tryGet<M extends ObjectType = ObjectType>(flowId?: string): FlowOrchestrator<M> | undefined {
     try {
       return this.get<M>(flowId);
     } catch {
