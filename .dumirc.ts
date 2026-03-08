@@ -2,6 +2,8 @@ import { defineConfig } from 'dumi';
 import path from 'path';
 
 export default defineConfig({
+  base: '/flow-orchestrator/',
+  publicPath: '/flow-orchestrator/',
   outputPath: 'docs-dist',
   alias: {
     '@lichenbuliren/flow-orchestrator': path.resolve(__dirname, 'src/index.ts'),
@@ -25,6 +27,7 @@ export default defineConfig({
         {
           title: '进阶',
           children: [
+            { title: '多流程管理', link: '/guide/multi-flow' },
             { title: 'React Native 集成', link: '/guide/react-native' },
             { title: '跨平台扩展', link: '/guide/cross-platform' },
           ],

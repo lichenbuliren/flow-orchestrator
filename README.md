@@ -2,6 +2,8 @@
 
 A high-cohesion, low-coupling flow orchestration engine for multi-step workflows.
 
+[Documentation](https://lichenbuliren.github.io/flow-orchestrator/) | [npm](https://www.npmjs.com/package/@lichenbuliren/flow-orchestrator)
+
 ## Features
 
 - **Framework-agnostic core** — FlowEngine is pure logic, zero platform dependencies
