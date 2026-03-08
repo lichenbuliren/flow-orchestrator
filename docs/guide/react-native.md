@@ -401,3 +401,146 @@ export function mapToFlowNodes(backendItems: BackendItem[]): FlowNode[] {
     .filter(Boolean) as FlowNode[];
 }
 ```
+
+## 8. 高阶场景：PageStack 内部机制
+
+### isInStack 状态追踪
+
+`PageStack` 维护一个 `entries` 数组，每个 entry 通过 `isInStack` 标记该页面是否仍在原生导航栈中。这是 popCount 自动计算的核心依据：
+
+```ts | pure
+interface PageStackEntry {
+  nodeId: string | number;
+  nodeName: string;
+  isInStack: boolean;       // 是否仍在原生栈中
+  presentation: PresentationType;
+  stackBehavior: StackBehavior;
+}
+```
+
+当 `stackBehavior: 'replace'` 的页面 push 时，`PageStack` 会：
+
+1. 调用 `countInStackPages()` — 统计所有 `isInStack === true` 的 entry 数量，作为 popCount
+2. 调用 `markAllAsPopped()` — 将所有已有 entry 的 `isInStack` 设为 `false`
+3. 新增一条 `isInStack: true` 的 entry
+
+这意味着 popCount 始终等于「当前原生栈中仍然存活的页面数」，而不是简单的固定值。
+
+### 复杂混合模式
+
+当 keep、transparent、replace 三种模式混用时，popCount 的计算会反映实际的栈状态：
+
+```
+Nodes:
+  A → stackBehavior='keep'
+  B → stackBehavior='keep'
+  C → presentation.type='transparent'
+  D → stackBehavior='replace'（默认）
+
+push A(keep)         → popCount=0    原生栈: [A]          isInStack: [A✓]
+push B(keep)         → popCount=0    原生栈: [A, B]       isInStack: [A✓, B✓]
+push C(transparent)  → popCount=0    原生栈: [A, B, C]    isInStack: [A✓, B✓, C✓]
+push D(replace)      → popCount=3    原生栈: [D]          isInStack: [A✗, B✗, C✗, D✓]
+```
+
+D 是 replace 模式，`countInStackPages()` 返回 3（A + B + C 都在栈中），所以 popCount=3，原生导航器先关闭 3 个页面再 push D。
+
+### 跳步回退（goBack 跨越多个节点）
+
+`popToNode()` 支持直接跳步回退到任意历史节点，分两种路径：
+
+**路径 A：目标页仍在栈中（keep / transparent 模式下常见）**
+
+```
+Nodes: [A(keep), B(keep), C(keep), D(keep)]
+
+push A → 原生栈: [A]
+push B → 原生栈: [A, B]
+push C → 原生栈: [A, B, C]
+push D → 原生栈: [A, B, C, D]
+
+goBack D→A（跳过 C 和 B）:
+  → A 在栈中（isInStack=true）
+  → popCount = A 之后 isInStack 的 entry 数 = 3（B + C + D）
+  → adapter.pop({ count: 3 })
+  → 原生栈: [A]
+  → wasReCreated=false ← 页面状态完整保留 ✅
+```
+
+**路径 B：目标页已被 pop 出栈（replace 模式下常见）**
+
+```
+Nodes: [A(replace), B(replace), C(replace)]
+
+push A → 原生栈: [A]
+push B → 原生栈: [B]        (A 被 pop, isInStack=false)
+push C → 原生栈: [C]        (B 被 pop, isInStack=false)
+
+goBack C→A（A 不在原生栈中）:
+  → A 不在栈中（isInStack=false）
+  → popCount = countInStackPages() = 1（只有 C 在栈中）
+  → adapter.push('A', propsData, { popCount: 1, __isGoBack: true })
+  → 原生栈: [A]（先 pop C，再 push A）
+  → wasReCreated=true ← 页面需从缓存恢复状态
+```
+
+### wasReCreated 与页面状态恢复
+
+当 `wasReCreated=true` 时，目标页面是被重新 push 的，不是从栈中自然回退的。页面组件可通过 `useFlowNode` 的 `isGoBack` 标记感知此状态：
+
+```tsx | pure
+const MyPage: React.FC<PageProps> = (props) => {
+  const { data, isGoBack } = useFlowNode(props);
+
+  useEffect(() => {
+    if (isGoBack) {
+      // 页面是被 re-push 的，需要从 flow data 恢复表单状态
+      restoreFormState(data);
+    }
+  }, [isGoBack]);
+
+  // ...
+};
+```
+
+> **设计原则**：`stackBehavior: 'keep'` 模式下回退不会触发 re-push，页面 React 状态天然保留。如果你的流程需要频繁回退且希望保持表单状态，优先使用 `keep` 模式。
+
+### 流程退出时的 popCount
+
+当流程结束（`end()`）或中止（`abort()`）时，`NavigationController.navigateExit()` 会调用 `PageStack.getTotalPopCount()` 获取当前栈中所有存活页面的数量，一次性全部关闭：
+
+```
+场景：keep 模式下积累了多个页面
+
+push A(keep)  → 原生栈: [A]
+push B(keep)  → 原生栈: [A, B]
+push C(keep)  → 原生栈: [A, B, C]
+
+abort() / end():
+  → getTotalPopCount() = 3
+  → adapter.pop({ count: 3 })
+  → 原生栈: []  ← 流程所有页面全部关闭
+```
+
+```
+场景：replace 模式下只有最后一个页面存活
+
+push A(replace)  → 原生栈: [A]
+push B(replace)  → 原生栈: [B]
+push C(replace)  → 原生栈: [C]
+
+abort() / end():
+  → getTotalPopCount() = 1（只有 C 在栈中）
+  → adapter.pop({ count: 1 })
+  → 原生栈: []
+```
+
+### stackBehavior 选择指南
+
+| 场景 | 推荐模式 | 理由 |
+|------|---------|------|
+| 线性引导流程（不需回退） | `replace`（默认） | 栈中只保留一个页面，内存最优 |
+| 表单多步骤（需频繁回退） | `keep` | 回退时页面状态天然保留，无需手动恢复 |
+| 弹窗 / 半屏确认 | `transparent` | 底层页面可见，pop 即可回退 |
+| 分支流程（可能跳过中间步骤） | `replace` + `beforeEnter: Skip` | 跳过的节点不产生页面，栈保持简洁 |
+| 混合：前半段需回退，后半段线性 | 前段 `keep` + 后段 `replace` | 按需保留，兼顾内存和体验 |
